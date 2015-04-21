@@ -131,7 +131,10 @@ void Viewer::createShaders() {
   _vertexFilenames.push_back("../TP09/shaders/show-terrain.vert");
   _fragmentFilenames.push_back("../TP09/shaders/show-terrain.frag");
 
-  // add you shaders for other passes here 
+  // *********************************displacement shader
+
+  _vertexFilenames.push_back("../TP09/shaders/displacement.vert");
+  _fragmentFilenames.push_back("../TP09/shaders/displacement.frag");
 
   // ******************************
 }
@@ -150,6 +153,7 @@ void Viewer::createHeightMap(GLuint id) {
 
 void Viewer::drawSceneFromCamera(GLuint id) {
   // create gbuffers (deferred shading)
+
 }
 
 void Viewer::drawSceneFromLight(GLuint id) {
@@ -165,6 +169,10 @@ void Viewer::testShowTerrain(GLuint id) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D,_texHeight);
   glUniform1i(glGetUniformLocation(id,"terrain"),0);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D,_terrain[0]);
+  glUniform1i(glGetUniformLocation(id,"grille"),1);
 
   glBindVertexArray(_vaoQuad);
   glDrawArrays(GL_TRIANGLES,0,6);
@@ -211,11 +219,12 @@ void Viewer::paintGL() {
   // clear buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  //ON A CHANGE LE 1 EN 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // activate the buffer shader 
-  glUseProgram(_shaders[1]->id());
+  glUseProgram(_shaders[2]->id());
 
   // test for showing generated terrain 
-  testShowTerrain(_shaders[1]->id());
+  testShowTerrain(_shaders[2]->id());
 
   // disable shader 
   glUseProgram(0);
