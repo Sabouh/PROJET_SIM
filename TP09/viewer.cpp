@@ -132,10 +132,8 @@ void Viewer::createShaders() {
   _fragmentFilenames.push_back("../TP09/shaders/show-terrain.frag");
 
   // *********************************displacement shader
-
   _vertexFilenames.push_back("../TP09/shaders/displacement.vert");
   _fragmentFilenames.push_back("../TP09/shaders/displacement.frag");
-
   // ******************************
 }
 
@@ -153,11 +151,27 @@ void Viewer::createHeightMap(GLuint id) {
 
 void Viewer::drawSceneFromCamera(GLuint id) {
   // create gbuffers (deferred shading)
+    glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
+    glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
+//    glUniform3fv(glGetUniformLocation(id,"light"),1,&(_light[0]));
+//    glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,_texHeight);
+    glUniform1i(glGetUniformLocation(id,"terrain"),0);
+
+//    glActiveTexture(GL_TEXTURE1);
+//    glBindTexture(GL_TEXTURE_2D,_texNormal);
+//    glUniform1i(glGetUniformLocation(id,"normalMap"),1);
+
+    glBindVertexArray(_vaoTerrain);
+    glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
+    glBindVertexArray(0);
 
 }
 
 void Viewer::drawSceneFromLight(GLuint id) {
-  // create shadowmap 
+  // create shadowmap
 }
 
 
@@ -165,18 +179,12 @@ void Viewer::renderFinalImage(GLuint id) {
   // compose textures post effects
 }
 
+
 void Viewer::testShowTerrain(GLuint id) {
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D,_texHeight);
-  glUniform1i(glGetUniformLocation(id,"terrain"),0);
+//  glBindVertexArray(_vaoQuad);
+//  glDrawArrays(GL_TRIANGLES,0,6);
+//  glBindVertexArray(0);
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D,_terrain[0]);
-  glUniform1i(glGetUniformLocation(id,"grille"),1);
-
-  glBindVertexArray(_vaoQuad);
-  glDrawArrays(GL_TRIANGLES,0,6);
-  glBindVertexArray(0);
 }
 
 void Viewer::paintGL() {
@@ -206,8 +214,6 @@ void Viewer::paintGL() {
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
 
-
-
   // *** show the generated height field (to be replaced) *** 
 
  // render in the viewport now
@@ -224,7 +230,8 @@ void Viewer::paintGL() {
   glUseProgram(_shaders[2]->id());
 
   // test for showing generated terrain 
-  testShowTerrain(_shaders[2]->id());
+//  testShowTerrain(_shaders[2]->id());
+    drawSceneFromCamera(_shaders[2]->id());
 
   // disable shader 
   glUseProgram(0);
