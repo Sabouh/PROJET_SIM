@@ -47,7 +47,8 @@ class Viewer : public QGLWidget {
   void deleteFBO();
   void createShaders();
   void updateTex(GLuint tex,GLenum filter,GLenum wrap,unsigned int w,
-		 unsigned int h,GLint iformat,GLenum format,bool isShadowmap=false);
+         unsigned int h,GLint iformat,GLenum format,bool isShadowmap=false);
+  void createTextures();
 
   // drawing functions 
   void createHeightMap(GLuint id);
@@ -83,6 +84,7 @@ class Viewer : public QGLWidget {
   // texture ids (1st fbo)
   GLuint _texHeight;
   GLuint _texShadow;
+  GLuint _montagneTexId;
 
   // texture ids (2nd fbo)
   GLuint _texBuff1;
