@@ -1,0 +1,4 @@
+# Les ligne commençant par '#' sont des commentaires.
+build-main-Desktop-Debug/*
+TP09/main.pro.user*
+*~

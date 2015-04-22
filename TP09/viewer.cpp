@@ -45,6 +45,7 @@ void Viewer::createFBO() {
 
   // Textures 
   glGenTextures(1,&_texHeight);
+  glGenTextures(1,&_montagneTexId);
 }
 
 void Viewer::deleteFBO() {
@@ -53,6 +54,7 @@ void Viewer::deleteFBO() {
 
   // Textures 
   glDeleteTextures(1,&_texHeight);
+  glDeleteTextures(1,&_montagneTexId);
 }
 
 void Viewer::createVAO() {
@@ -85,6 +87,22 @@ void Viewer::deleteVAO() {
   glDeleteBuffers(1,&_quad);
   glDeleteVertexArrays(1,&_vaoTerrain);
   glDeleteVertexArrays(1,&_vaoQuad);
+}
+
+void Viewer::createTextures(){
+    QImage image;
+
+    glBindTexture(GL_TEXTURE_2D,_montagneTexId);
+
+    image = QGLWidget::convertToGLFormat(QImage("../TP09/textures/desert.jpg"));
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image.width(),image.height(),0,
+             GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image.bits());
+   // glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
 }
 
 void Viewer::updateTex(GLuint tex,GLenum filter,GLenum wrap,unsigned int w,
@@ -145,6 +163,10 @@ void Viewer::createShaders() {
   _vertexFilenames.push_back("../TP09/shaders/light.vert");
   _fragmentFilenames.push_back("../TP09/shaders/light.frag");
   // ******************************
+  //appearance shader
+  _vertexFilenames.push_back("../TP09/shaders/apparence.vert");
+  _fragmentFilenames.push_back("../TP09/shaders/apparence.frag");
+  // ******************************
 }
 
 void Viewer::createHeightMap(GLuint id) {
@@ -195,6 +217,28 @@ void Viewer::drawSceneFromLight(GLuint id) {
 
 void Viewer::renderFinalImage(GLuint id) {
   // compose textures post effects
+    /*********PAS SURE ******/
+    glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
+    glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,_texHeight);
+    glUniform1i(glGetUniformLocation(id,"terrain"),0);
+     /****************/
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D,_montagneTexId);
+    glUniform1i(glGetUniformLocation(id,"montagneTex"),1);
+
+
+
+    // draw VAO
+    glBindVertexArray(_vaoTerrain);
+    glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
+    glBindVertexArray(0);
+
+    // disable shader
+    //glUseProgram(0);
 }
 
 void Viewer::testShowTerrain(GLuint id) {
@@ -241,9 +285,8 @@ void Viewer::paintGL() {
   // activate the buffer shader 
   glUseProgram(_shaders[3]->id());
 
-  // test for showing generated terrain 
-//  testShowTerrain(_shaders[2]->id());
-    drawSceneFromCamera(_shaders[3]->id());
+  drawSceneFromLight(_shaders[3]->id());
+  //renderFinalImage(_shaders[3]->id());
 
   // disable shader 
   glUseProgram(0);
@@ -405,6 +448,7 @@ void Viewer::initializeGL() {
     
   // create/init FBO
   createFBO();
+  createTextures();
   updateFBO();
 
   // starts the timer 
