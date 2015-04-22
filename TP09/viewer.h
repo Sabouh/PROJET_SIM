@@ -83,6 +83,7 @@ class Viewer : public QGLWidget {
   // texture ids (1st fbo)
   GLuint _texHeight;
   GLuint _texShadow;
+  GLuint _texNormal;
 
   // texture ids (2nd fbo)
   GLuint _texBuff1;

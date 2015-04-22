@@ -113,6 +113,12 @@ void Viewer::updateFBO() {
   glBindFramebuffer(GL_FRAMEBUFFER,_fboTerrain);
   glBindTexture(GL_TEXTURE_2D,_texHeight);
   glFramebufferTexture2D(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,_texHeight,0);
+
+  //Normal Map
+//  updateTex(_texNormal,GL_LINEAR,GL_CLAMP_TO_EDGE,_ndResol,_ndResol,GL_RGBA32F,GL_RGBA);
+//  glBindFramebuffer(GL_FRAMEBUFFER,_fboPreProcess);
+//  glBindTexture(GL_TEXTURE_2D,_texNormal);
+//  glFramebufferTexture2D(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,_texNormal,0);
  
   // test if everything is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -130,10 +136,14 @@ void Viewer::createShaders() {
   // ******************************
   _vertexFilenames.push_back("../TP09/shaders/show-terrain.vert");
   _fragmentFilenames.push_back("../TP09/shaders/show-terrain.frag");
-
-  // *********************************displacement shader
+  // *********************************
+  // displacement shader
   _vertexFilenames.push_back("../TP09/shaders/displacement.vert");
   _fragmentFilenames.push_back("../TP09/shaders/displacement.frag");
+  // ******************************
+  // light shader
+  _vertexFilenames.push_back("../TP09/shaders/light.vert");
+  _fragmentFilenames.push_back("../TP09/shaders/light.frag");
   // ******************************
 }
 
@@ -150,11 +160,25 @@ void Viewer::createHeightMap(GLuint id) {
 }
 
 void Viewer::drawSceneFromCamera(GLuint id) {
-  // create gbuffers (deferred shading)
+    glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
+    glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,_texHeight);
+    glUniform1i(glGetUniformLocation(id,"terrain"),0);
+
+    glBindVertexArray(_vaoTerrain);
+    glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
+    glBindVertexArray(0);
+
+}
+
+void Viewer::drawSceneFromLight(GLuint id) {
     glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
     glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
 //    glUniform3fv(glGetUniformLocation(id,"light"),1,&(_light[0]));
-//    glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
+    glUniform3f(glGetUniformLocation(id,"light"), _light[0], _light[1], _light[2]);
+    glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,_texHeight);
@@ -167,24 +191,13 @@ void Viewer::drawSceneFromCamera(GLuint id) {
     glBindVertexArray(_vaoTerrain);
     glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
     glBindVertexArray(0);
-
 }
-
-void Viewer::drawSceneFromLight(GLuint id) {
-  // create shadowmap
-}
-
 
 void Viewer::renderFinalImage(GLuint id) {
   // compose textures post effects
 }
 
-
 void Viewer::testShowTerrain(GLuint id) {
-//  glBindVertexArray(_vaoQuad);
-//  glDrawArrays(GL_TRIANGLES,0,6);
-//  glBindVertexArray(0);
-
 }
 
 void Viewer::paintGL() {
@@ -225,13 +238,12 @@ void Viewer::paintGL() {
   // clear buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  //ON A CHANGE LE 1 EN 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // activate the buffer shader 
-  glUseProgram(_shaders[2]->id());
+  glUseProgram(_shaders[3]->id());
 
   // test for showing generated terrain 
 //  testShowTerrain(_shaders[2]->id());
-    drawSceneFromCamera(_shaders[2]->id());
+    drawSceneFromCamera(_shaders[3]->id());
 
   // disable shader 
   glUseProgram(0);
@@ -306,10 +318,6 @@ void Viewer::keyPressEvent(QKeyEvent *ke) {
   if(ke->key()==Qt::Key_D) {
     _motion[2] -= step;
   }
-
-  
-
-
 
   // key a: play/stop animation
   if(ke->key()==Qt::Key_A) {
