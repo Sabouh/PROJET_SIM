@@ -94,7 +94,7 @@ void Viewer::createTextures(){
 
     glBindTexture(GL_TEXTURE_2D,_montagneTexId);
 
-    image = QGLWidget::convertToGLFormat(QImage("../TP09/textures/desert.jpg"));
+    image = QGLWidget::convertToGLFormat(QImage("../TP09/textures/full.jpg"));
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image.width(),image.height(),0,
              GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image.bits());
    // glGenerateMipmap(GL_TEXTURE_2D);
