@@ -123,7 +123,7 @@ void Viewer::updateTex(GLuint tex,GLenum filter,GLenum wrap,unsigned int w,
 }
 
 void Viewer::updateFBO() {
-  
+
   // create the noise texture 
   updateTex(_texHeight,GL_LINEAR,GL_CLAMP_TO_EDGE,_ndResol,_ndResol,GL_RGBA32F,GL_RGBA);
 
@@ -131,17 +131,10 @@ void Viewer::updateFBO() {
   glBindFramebuffer(GL_FRAMEBUFFER,_fboTerrain);
   glBindTexture(GL_TEXTURE_2D,_texHeight);
   glFramebufferTexture2D(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,_texHeight,0);
-
-  //Normal Map
-//  updateTex(_texNormal,GL_LINEAR,GL_CLAMP_TO_EDGE,_ndResol,_ndResol,GL_RGBA32F,GL_RGBA);
-//  glBindFramebuffer(GL_FRAMEBUFFER,_fboPreProcess);
-//  glBindTexture(GL_TEXTURE_2D,_texNormal);
-//  glFramebufferTexture2D(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,_texNormal,0);
  
   // test if everything is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout << "Warning: FBO[0] not complete!" << endl;
-
 
   // disable FBO
   glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -155,17 +148,21 @@ void Viewer::createShaders() {
   _vertexFilenames.push_back("../TP09/shaders/show-terrain.vert");
   _fragmentFilenames.push_back("../TP09/shaders/show-terrain.frag");
   // *********************************
-  // displacement shader
+  // displacement shader = 2
   _vertexFilenames.push_back("../TP09/shaders/displacement.vert");
   _fragmentFilenames.push_back("../TP09/shaders/displacement.frag");
   // ******************************
-  // light shader
+  // light shader = 3
   _vertexFilenames.push_back("../TP09/shaders/light.vert");
   _fragmentFilenames.push_back("../TP09/shaders/light.frag");
   // ******************************
-  //appearance shader
+  //appearance shader = 4
   _vertexFilenames.push_back("../TP09/shaders/apparence.vert");
   _fragmentFilenames.push_back("../TP09/shaders/apparence.frag");
+  // ******************************
+  //full shader = 5
+  _vertexFilenames.push_back("../TP09/shaders/full.vert");
+  _fragmentFilenames.push_back("../TP09/shaders/full.frag");
   // ******************************
 }
 
@@ -192,53 +189,37 @@ void Viewer::drawSceneFromCamera(GLuint id) {
     glBindVertexArray(_vaoTerrain);
     glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
     glBindVertexArray(0);
-
 }
 
 void Viewer::drawSceneFromLight(GLuint id) {
-    glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
-    glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
-//    glUniform3fv(glGetUniformLocation(id,"light"),1,&(_light[0]));
-    glUniform3f(glGetUniformLocation(id,"light"), _light[0], _light[1], _light[2]);
-    glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,_texHeight);
-    glUniform1i(glGetUniformLocation(id,"terrain"),0);
-
-//    glActiveTexture(GL_TEXTURE1);
-//    glBindTexture(GL_TEXTURE_2D,_texNormal);
-//    glUniform1i(glGetUniformLocation(id,"normalMap"),1);
-
-    glBindVertexArray(_vaoTerrain);
-    glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
-    glBindVertexArray(0);
 }
 
 void Viewer::renderFinalImage(GLuint id) {
-  // compose textures post effects
-    /*********PAS SURE ******/
     glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
     glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
+    glUniform3f(glGetUniformLocation(id,"light"), _light[0], _light[1], _light[2]);
+    glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
+
+    // matrice modele-vue-projection du point de vue la lumiere
+    const float size = sqrt(2);
+    glm::vec3 l   = glm::transpose(_cam->normalMatrix())*_light;
+    glm::mat4 p   = glm::ortho<float>(-size,size,-size,size,-size,2*size);
+    glm::mat4 v   = glm::lookAt(l, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    glm::mat4 m   = glm::mat4(1.0);
+    const glm::mat4 mvpMat = p*v*m;
+    glUniformMatrix4fv(glGetUniformLocation(id,"mvpMat"),1,GL_FALSE,&mvpMat[0][0]);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,_texHeight);
     glUniform1i(glGetUniformLocation(id,"terrain"),0);
-     /****************/
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,_montagneTexId);
     glUniform1i(glGetUniformLocation(id,"montagneTex"),1);
 
-
-
-    // draw VAO
     glBindVertexArray(_vaoTerrain);
     glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
     glBindVertexArray(0);
-
-    // disable shader
-    //glUseProgram(0);
 }
 
 void Viewer::testShowTerrain(GLuint id) {
@@ -283,10 +264,10 @@ void Viewer::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // activate the buffer shader 
-  glUseProgram(_shaders[3]->id());
+  glUseProgram( _shaders[5]->id() );
 
-  drawSceneFromLight(_shaders[3]->id());
-  //renderFinalImage(_shaders[3]->id());
+  //drawSceneFromLight( _shaders[3]->id() );
+  renderFinalImage( _shaders[5]->id() );
 
   // disable shader 
   glUseProgram(0);

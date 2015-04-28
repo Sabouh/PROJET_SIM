@@ -84,6 +84,7 @@ class Viewer : public QGLWidget {
   // texture ids (1st fbo)
   GLuint _texHeight;
   GLuint _texShadow;
+  GLuint _fboPreProcess;
   GLuint _texNormal;
   GLuint _montagneTexId;
 
