@@ -14,7 +14,8 @@ Viewer::Viewer(char *,const QGLFormat &format)
     _motion(glm::vec3(0,0,0)),
     _mode(false),
     _showShadowMap(false),
-    _ndResol(512) {
+    _ndResol(512),
+    _depthResol(512) {
 
   setlocale(LC_ALL,"C");
 
@@ -42,15 +43,30 @@ Viewer::~Viewer() {
 void Viewer::createFBO() {
   // FBOs
   glGenFramebuffers(1,&_fboTerrain);
+  glGenTextures(1,&_texDepth);
 
   // Textures 
   glGenTextures(1,&_texHeight);
   glGenTextures(1,&_montagneTexId);
+
+  // create the texture for rendering depth values
+  glBindTexture(GL_TEXTURE_2D,_texDepth);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT24,_depthResol,_depthResol,0,GL_DEPTH_COMPONENT,GL_FLOAT,NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  // attach textures to framebuffer object
+  glBindFramebuffer(GL_FRAMEBUFFER,_fbo);
+  glBindTexture(GL_TEXTURE_2D,_texDepth);
+  glFramebufferTexture2D(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D,_texDepth,0);
 }
 
 void Viewer::deleteFBO() {
   // FBOs
   glDeleteFramebuffers(1,&_fboTerrain);
+  glDeleteTextures(1,&_texDepth);
 
   // Textures 
   glDeleteTextures(1,&_texHeight);
@@ -197,8 +213,8 @@ void Viewer::drawSceneFromLight(GLuint id) {
 void Viewer::renderFinalImage(GLuint id) {
     glUniformMatrix4fv(glGetUniformLocation(id,"mdvMat"),1,GL_FALSE,&(_cam->mdvMatrix()[0][0]));
     glUniformMatrix4fv(glGetUniformLocation(id,"projMat"),1,GL_FALSE,&(_cam->projMatrix()[0][0]));
-    glUniform3f(glGetUniformLocation(id,"light"), _light[0], _light[1], _light[2]);
     glUniformMatrix3fv(glGetUniformLocation(id,"normalMat"),1,GL_FALSE,&(_cam->normalMatrix()[0][0]));
+    glUniform3f(glGetUniformLocation(id,"light"), _light[0], _light[1], _light[2]);
 
     // matrice modele-vue-projection du point de vue la lumiere
     const float size = sqrt(2);
@@ -216,6 +232,11 @@ void Viewer::renderFinalImage(GLuint id) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,_montagneTexId);
     glUniform1i(glGetUniformLocation(id,"montagneTex"),1);
+
+    // send the shadow map here ***
+    glActiveTexture(GL_TEXTURE0+2);
+    glBindTexture(GL_TEXTURE_2D,_texDepth);
+    glUniform1i(glGetUniformLocation(id,"shadowmap"),2);
 
     glBindVertexArray(_vaoTerrain);
     glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);

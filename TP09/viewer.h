@@ -92,7 +92,11 @@ class Viewer : public QGLWidget {
   GLuint _texBuff1;
   GLuint _texBuff2;
   GLuint _texBuff3;
-  GLuint _texDepth;
+
+  // fbo id and associated depth texture
+  GLuint _fbo;
+  GLuint _texDepth; // this will be our shadowmap!
+  unsigned int _depthResol; // this is the resolution of the shadowmap (squared texture)
 
   unsigned int _ndResol;
 };

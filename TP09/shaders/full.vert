@@ -3,19 +3,24 @@
 // input attributes
 layout(location = 0) in vec3 position;
 
-uniform mat4 mdvMat;
-uniform mat4 projMat;
-uniform mat4 normalMat;
 uniform mat4 mvpMat; //matrice projection depuis lumière
+uniform mat4 mvpDepthMat; // mvp depth matrix
+uniform mat4 mdvMat;      // modelview matrix 
+uniform mat4 projMat;     // projection matrix
+uniform mat3 normalMat;   // normal matrix
 
 uniform sampler2D terrain;
-uniform sampler2D shadowMap;
 
 uniform vec3 light;
 
 out vec2 coord;
+out vec3 normalView;
+out vec3 tangentView;
+out vec2 uvcoord;
+out vec3 eyeView;
 out vec3 normal;
 out vec4 fragmentColor;
+out vec4 posLight;
 
 vec3 calculNormal(){
 	float alpha = 100;
@@ -37,14 +42,19 @@ vec3 calculNormal(){
 
 void main() {
   vec3 p = position;
-  
   coord = position.xy*0.5+0.5;
   p.z = texture(terrain,coord).x; 
-  gl_Position = projMat*mdvMat*vec4(p,1.0);
-  //shadow map
-  //gl_Position = mvpMat*vec4(p,1.0);
-  
   normal = calculNormal();
+  
+  normalView  = normalize(normalMat*normal);
+  tangentView = vec3(1.0,0,0)* normalMat;
+  eyeView     = normalize((mdvMat*vec4(p,1.0)).xyz);
+  uvcoord     = coord*5.0;
+
+  gl_Position = projMat*mdvMat*vec4(p,1.0);
+
+  posLight = (mvpDepthMat * vec4(p,1.0)) * 0.5 + 0.5;
+  
   fragmentColor = vec4(dot(normal,light));
 }
 
