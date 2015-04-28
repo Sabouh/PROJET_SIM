@@ -16,6 +16,7 @@ uniform vec3 light;
 out vec2 coord;
 out vec3 normal;
 out vec4 fragmentColor;
+out vec3 p;
 
 vec3 calculNormal(){
 	float alpha = 100;
@@ -36,7 +37,7 @@ vec3 calculNormal(){
 }
 
 void main() {
-  vec3 p = position;
+  p = position;
   
   coord = position.xy*0.5+0.5;
   p.z = texture(terrain,coord).x; 

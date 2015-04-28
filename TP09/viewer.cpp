@@ -327,10 +327,10 @@ void Viewer::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // activate the buffer shader 
-  glUseProgram( _shaders[4]->id() );
+  glUseProgram( _shaders[5]->id() );
 
   //drawSceneFromLight( _shaders[3]->id() );
-  renderFinalImage( _shaders[4]->id() );
+  renderFinalImage( _shaders[5]->id() );
 
   // disable shader 
   glUseProgram(0);
