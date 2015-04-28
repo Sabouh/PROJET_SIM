@@ -42,7 +42,7 @@ void main() {
 	vec3 l = normalize(light);
 	vec4 c;
 	if(p.z > 0.79){
-		c = texture(eauTex,coord);
+		c = texture(neigeTex,coord);
 	}
 	else if(p.z > 0.6){
 		c = texture(rocheTex,coord);
@@ -54,7 +54,7 @@ void main() {
 		c = texture(rocheTex,coord);
 	}
 	else{
-		c = texture(neigeTex,coord);
+		c = texture(eauTex,coord);
 	}
 	
 	float diff = max(dot(l,n),0.0);
