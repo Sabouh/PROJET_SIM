@@ -2,6 +2,8 @@
 
 out vec4 outBuffer;
 
+uniform vec3 light;
+
 uniform sampler2D terrain;
 //uniform sampler2D shadowMap;
 uniform sampler2D eauTex;
@@ -16,13 +18,15 @@ in vec3 p;
 in  vec3 normalView;
 in  vec3 eyeView;
 
+float Pi =3.1415926;
+
 void main() {
-
-     	 vec3 n = normalize(normalView);
-         vec3 e = normalize(eyeView);
-
-	 if(p.z > 0.75){
-	   outBuffer = fragmentColor*texture(eauTex,coord)*reflect(e,n);
+	 
+	 if(p.z > 0.79){
+	   outBuffer = fragmentColor*texture(eauTex,coord);
+         }
+	 else if(p.z > 0.6){
+	   outBuffer = fragmentColor*texture(rocheTex,coord);
          }
          else if(p.z > 0.25){
            outBuffer = fragmentColor*texture(foretTex,coord);

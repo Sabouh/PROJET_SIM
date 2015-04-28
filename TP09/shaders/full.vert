@@ -5,8 +5,7 @@ layout(location = 0) in vec3 position;
 
 uniform mat4 mdvMat;
 uniform mat4 projMat;
-uniform mat4 normalMat;
-uniform mat4 mvpMat; //matrice projection depuis lumière
+uniform mat3 normalMat;
 
 uniform sampler2D terrain;
 uniform sampler2D shadowMap;
@@ -43,13 +42,19 @@ void main() {
   
   coord = position.xy*0.5+0.5;
   p.z = texture(terrain,coord).x; 
+  
+
   gl_Position = projMat*mdvMat*vec4(p,1.0);
   //shadow map
   //gl_Position = mvpMat*vec4(p,1.0);
   
   normal = calculNormal();
   fragmentColor = vec4(dot(normal,light));
-  eyeView = normalize((mdvMat*vec4(position,1.0)).xyz); 
+
+  eyeView = normalize((mdvMat*vec4(p,1.0)).xyz); 
   normalView  = normalize(normalMat*normal);
+
 }
+
+
 
