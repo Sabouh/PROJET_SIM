@@ -21,6 +21,7 @@ out vec3 eyeView;
 out vec3 normal;
 out vec4 fragmentColor;
 out vec4 posLight;
+out vec3 p;
 
 vec3 calculNormal(){
 	float alpha = 100;
@@ -41,7 +42,8 @@ vec3 calculNormal(){
 }
 
 void main() {
-  vec3 p = position;
+
+  p = position;
   coord = position.xy*0.5+0.5;
   p.z = texture(terrain,coord).x; 
   normal = calculNormal();
@@ -56,5 +58,11 @@ void main() {
   posLight = (mvpDepthMat * vec4(p,1.0)) * 0.5 + 0.5;
   
   fragmentColor = vec4(dot(normal,light));
+
+  eyeView = normalize((mdvMat*vec4(p,1.0)).xyz); 
+  normalView  = normalize(normalMat*normal);
+
 }
+
+
 

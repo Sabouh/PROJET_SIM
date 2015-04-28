@@ -65,5 +65,9 @@ void main() {
   float y = gl_FragCoord.y/s+motion.y;
   float p = perlinNoise(x,y)+motion.z;
 
+  if(p > 0.6){
+    p = 0.6;
+  }
+
   outBuffer = vec4(p*0.5+0.5);
 }

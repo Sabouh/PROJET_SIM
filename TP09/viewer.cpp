@@ -71,6 +71,7 @@ void Viewer::deleteFBO() {
   // Textures 
   glDeleteTextures(1,&_texHeight);
   glDeleteTextures(1,&_montagneTexId);
+  
 }
 
 void Viewer::createVAO() {
@@ -106,19 +107,54 @@ void Viewer::deleteVAO() {
 }
 
 void Viewer::createTextures(){
-    QImage image;
+    QImage image, image2,image3,image4;
 
-    glBindTexture(GL_TEXTURE_2D,_montagneTexId);
+    glEnable(GL_TEXTURE_2D);
 
-    image = QGLWidget::convertToGLFormat(QImage("../TP09/textures/full.jpg"));
+    glGenTextures(1,&_rocheTexId);
+    glGenTextures(1,&_eauTexId);
+    glGenTextures(1,&_neigeTexId);
+    glGenTextures(1,&_foretTexId);
+
+    glBindTexture(GL_TEXTURE_2D,_rocheTexId);
+    image = QGLWidget::convertToGLFormat(QImage("../TP09/textures/roche.jpg"));
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image.width(),image.height(),0,
              GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image.bits());
-   // glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 
+    glBindTexture(GL_TEXTURE_2D,_eauTexId);
+    image2 = QGLWidget::convertToGLFormat(QImage("../TP09/textures/eau.jpg"));
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image2.width(),image2.height(),0,
+             GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image2.bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D,_neigeTexId);
+    image3 = QGLWidget::convertToGLFormat(QImage("../TP09/textures/neige.jpg"));
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image3.width(),image3.height(),0,
+             GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image3.bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D,_foretTexId);
+    image4 = QGLWidget::convertToGLFormat(QImage("../TP09/textures/foret.jpg"));
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,image4.width(),image4.height(),0,
+             GL_RGBA,GL_UNSIGNED_BYTE,(const GLvoid *)image4.bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 }
 
 void Viewer::updateTex(GLuint tex,GLenum filter,GLenum wrap,unsigned int w,
@@ -230,14 +266,27 @@ void Viewer::renderFinalImage(GLuint id) {
     glUniform1i(glGetUniformLocation(id,"terrain"),0);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D,_montagneTexId);
-    glUniform1i(glGetUniformLocation(id,"montagneTex"),1);
+    glBindTexture(GL_TEXTURE_2D,_eauTexId);
+    glUniform1i(glGetUniformLocation(id,"eauTex"),1);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D,_foretTexId);
+    glUniform1i(glGetUniformLocation(id,"foretTex"),5);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D,_rocheTexId);
+    glUniform1i(glGetUniformLocation(id,"rocheTex"),3);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D,_neigeTexId);
+    glUniform1i(glGetUniformLocation(id,"neigeTex"),4);
 
     // send the shadow map here ***
-    glActiveTexture(GL_TEXTURE0+2);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D,_texDepth);
     glUniform1i(glGetUniformLocation(id,"shadowmap"),2);
 
+    // draw VAO
     glBindVertexArray(_vaoTerrain);
     glDrawElements(GL_TRIANGLES,3*_grid->nbFaces(),GL_UNSIGNED_INT,(void *)0);
     glBindVertexArray(0);
@@ -424,7 +473,7 @@ void Viewer::initializeGL() {
   }
 
   // init OpenGL settings
-  glClearColor(0.0,0.0,0.0,1.0);
+  glClearColor(0.4,0.7,0.9,1.0);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
