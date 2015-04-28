@@ -466,7 +466,7 @@ void Viewer::initializeGL() {
   }
 
   // init OpenGL settings
-  glClearColor(0.0,0.0,0.0,1.0);
+  glClearColor(0.4,0.7,0.9,1.0);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_2D);
   glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);

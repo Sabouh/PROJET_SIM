@@ -18,10 +18,9 @@ in vec3 p;
 in  vec3 normalView;
 in  vec3 eyeView;
 
-float Pi =3.1415926;
-
 void main() {
-	 
+
+
 	 if(p.z > 0.79){
 	   outBuffer = fragmentColor*texture(eauTex,coord);
          }
@@ -35,6 +34,7 @@ void main() {
      	   outBuffer = fragmentColor*texture(rocheTex,coord);
          }
          else{
-          outBuffer = fragmentColor*texture(neigeTex,coord);
+           outBuffer = fragmentColor*texture(neigeTex,coord);
          }
+	
 }
