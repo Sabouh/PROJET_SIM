@@ -17,6 +17,8 @@ out vec2 coord;
 out vec3 normal;
 out vec4 fragmentColor;
 out vec3 p;
+out vec3 normalView;
+out vec3 eyeView;
 
 vec3 calculNormal(){
 	float alpha = 100;
@@ -47,5 +49,7 @@ void main() {
   
   normal = calculNormal();
   fragmentColor = vec4(dot(normal,light));
+  eyeView = normalize((mdvMat*vec4(position,1.0)).xyz); 
+  normalView  = normalize(normalMat*normal);
 }
 
